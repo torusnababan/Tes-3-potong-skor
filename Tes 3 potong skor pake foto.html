@@ -1,0 +1,364 @@
+ <!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kuis Psikotes</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f4f4f4;
+            color: #333;
+        }
+        .container {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            max-width: 800px;
+            margin: auto;
+        }
+        h1, h2 {
+            color: #0056b3;
+        }
+        .author-info {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 15px;
+        }
+        .author-info img {
+            width: 80px; /* Ukuran foto */
+            height: 80px; /* Ukuran foto */
+            border-radius: 50%; /* Membuat foto bulat */
+            margin-right: 15px;
+            object-fit: cover; /* Memastikan gambar pas tanpa terdistorsi */
+            border: 2px solid #0056b3;
+        }
+        .author-info div {
+            flex-grow: 1;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input[type="text"], input[type="number"], select {
+            width: calc(100% - 22px);
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .question {
+            margin-bottom: 20px;
+            border: 1px solid #eee;
+            padding: 15px;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+        .question p {
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .options label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: normal;
+        }
+        button {
+            background-color: #28a745;
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 20px;
+        }
+        button:hover {
+            background-color: #218838;
+        }
+        #timer {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #d9534f;
+            margin-bottom: 15px;
+            text-align: right;
+        }
+        #results {
+            margin-top: 30px;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            background-color: #e9ecef;
+            display: none; /* Hidden by default */
+        }
+        .correct {
+            color: green;
+            font-weight: bold;
+        }
+        .incorrect {
+            color: red;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Kuis Psikotes</h1>
+        
+        <div class="author-info">
+            <img src="torus_nababan.jpg" alt="Foto Torus Manuntun Nababan, S.Pd.,M.Pd">
+            <div>
+                <p style="margin: 0; font-weight: bold;">By. Torus Manuntun Nababan, S.Pd.,M.Pd</p>
+                <p style="margin: 0; font-size: 0.9em; color: #555;">(Pengembang Soal Kuis)</p>
+            </div>
+        </div>
+        <p>Waktu pengerjaan: <span id="timeLimit">5</span> menit</p>
+        <div id="timer">Waktu tersisa: 05:00</div>
+
+        <form id="quizForm">
+            <h2>Identitas Siswa</h2>
+            <div class="form-group">
+                <label for="sekolah">Nama Sekolah:</label>
+                <input type="text" id="sekolah" name="sekolah" required>
+            </div>
+            <div class="form-group">
+                <label for="nama">Nama Siswa:</label>
+                <input type="text" id="nama" name="nama" required>
+            </div>
+            <div class="form-group">
+                <label for="kelas">Kelas:</label>
+                <input type="text" id="kelas" name="kelas" required>
+            </div>
+            <div class="form-group">
+                <label for="semester">Semester:</label>
+                <select id="semester" name="semester" required>
+                    <option value="">Pilih Semester</option>
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="tahunAjaran">Tahun Ajaran:</label>
+                <input type="text" id="tahunAjaran" name="tahunAjaran" placeholder="Contoh: 2024/2025" required>
+            </div>
+
+            <hr>
+
+            <h2>Soal Kuis</h2>
+            <div id="questionsContainer">
+                </div>
+
+            <button type="submit">Selesai Kuis</button>
+        </form>
+
+        <div id="results">
+            <h2>Hasil Kuis</h2>
+            <p><strong>Nama Siswa:</strong> <span id="resultNama"></span></p>
+            <p><strong>Skor Anda:</strong> <span id="score"></span></p>
+            <p id="message"></p>
+            <h3>Detail Jawaban:</h3>
+            <div id="answerDetails">
+                </div>
+        </div>
+    </div>
+
+    <script>
+        const questions = [
+            {
+                type: "penjumlahan",
+                question: "Berapa hasil dari 15 + 7?",
+                options: ["20", "22", "25", "27"],
+                answer: "22"
+            },
+            {
+                type: "perkalian",
+                question: "Berapa hasil dari 8 x 6?",
+                options: ["42", "48", "54", "60"],
+                answer: "48"
+            },
+            {
+                type: "pembagian",
+                question: "Berapa hasil dari 72 / 9?",
+                options: ["6", "7", "8", "9"],
+                answer: "8"
+            },
+            {
+                type: "pangkat",
+                question: "Berapa hasil dari 4 pangkat 3 (4³)?",
+                options: ["12", "16", "64", "256"],
+                answer: "64"
+            },
+            {
+                type: "logika",
+                question: "Jika hari ini hujan, maka jalanan akan basah. Hari ini hujan. Kesimpulannya?",
+                options: ["Jalanan kering", "Jalanan basah", "Belum tentu basah", "Tidak ada hubungan"],
+                answer: "Jalanan basah"
+            },
+            {
+                type: "penjumlahan",
+                question: "Berapa hasil dari 30 + 12?",
+                options: ["40", "42", "45", "48"],
+                answer: "42"
+            },
+            {
+                type: "perkalian",
+                question: "Berapa hasil dari 11 x 7?",
+                options: ["70", "77", "88", "99"],
+                answer: "77"
+            },
+            {
+                type: "pembagian",
+                question: "Berapa hasil dari 100 / 25?",
+                options: ["2", "3", "4", "5"],
+                answer: "4"
+            },
+            {
+                type: "pangkat",
+                question: "Berapa hasil dari 5 pangkat 2 (5²)?",
+                options: ["10", "20", "25", "50"],
+                answer: "25"
+            },
+            {
+                type: "logika",
+                question: "Semua burung bisa terbang. Burung unta adalah burung. Kesimpulannya?",
+                options: ["Burung unta bisa terbang", "Burung unta tidak bisa terbang", "Tidak ada kesimpulan", "Hanya beberapa burung unta bisa terbang"],
+                answer: "Burung unta tidak bisa terbang" // Ini adalah soal logika pengecoh, burung unta tidak bisa terbang.
+            }
+        ];
+
+        const timeLimitInMinutes = 5;
+        let timeLeft = timeLimitInMinutes * 60; // seconds
+        let timerInterval;
+
+        const quizForm = document.getElementById('quizForm');
+        const questionsContainer = document.getElementById('questionsContainer');
+        const timerDisplay = document.getElementById('timer');
+        const resultsDiv = document.getElementById('results');
+        const resultNama = document.getElementById('resultNama');
+        const scoreDisplay = document.getElementById('score');
+        const messageDisplay = document.getElementById('message');
+        const answerDetailsDiv = document.getElementById('answerDetails');
+
+        // Function to shuffle array (Fisher-Yates algorithm)
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+
+        // Generate questions
+        function generateQuestions() {
+            shuffleArray(questions); // Shuffle questions
+            questions.forEach((q, index) => {
+                const questionDiv = document.createElement('div');
+                questionDiv.classList.add('question');
+                questionDiv.innerHTML = `
+                    <p>${index + 1}. ${q.question}</p>
+                    <div class="options">
+                        ${q.options.map((option, i) => `
+                            <label>
+                                <input type="radio" name="q${index}" value="${option}" required>
+                                ${option}
+                            </label>
+                        `).join('')}
+                    </div>
+                `;
+                questionsContainer.appendChild(questionDiv);
+            });
+        }
+
+        // Start Timer
+        function startTimer() {
+            timerInterval = setInterval(() => {
+                const minutes = Math.floor(timeLeft / 60);
+                const seconds = timeLeft % 60;
+                timerDisplay.textContent = `Waktu tersisa: ${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    alert("Waktu habis! Kuis akan otomatis disubmit.");
+                    quizForm.dispatchEvent(new Event('submit')); // Programmatically submit the form
+                }
+                timeLeft--;
+            }, 1000);
+        }
+
+        // Handle form submission
+        quizForm.addEventListener('submit', function(event) {
+            event.preventDefault(); // Prevent default form submission
+            clearInterval(timerInterval); // Stop the timer
+
+            let score = 0;
+            const answers = {};
+            const maxPossibleScore = questions.length * 5; // Total possible score if all correct (10 soal * 5 poin)
+
+            questions.forEach((q, index) => {
+                const selectedOption = document.querySelector(`input[name="q${index}"]:checked`);
+                const userAnswer = selectedOption ? selectedOption.value : null;
+                answers[`q${index}`] = userAnswer;
+
+                if (userAnswer === q.answer) {
+                    score += 5; // Jawaban benar mendapat 5 poin
+                } else if (userAnswer !== null) { // Jika ada jawaban tapi salah
+                    score -= 2; // Jawaban salah dikurangi 2 poin
+                }
+                // Jika tidak dijawab, skor tidak berubah
+            });
+
+            // Display results
+            resultNama.textContent = document.getElementById('nama').value;
+            scoreDisplay.textContent = `${score} / ${maxPossibleScore}`;
+
+            // Kalkulasi persentase untuk menentukan keberhasilan
+            const percentage = (score / maxPossibleScore) * 100;
+
+            if (percentage >= 80) {
+                messageDisplay.textContent = "Selamat Anda Sudah Berhasil!";
+                messageDisplay.style.color = "green";
+            } else {
+                messageDisplay.textContent = "Anda Masih Belum Berhasil, Silahkan Belajar Lagi.";
+                messageDisplay.style.color = "red";
+            }
+
+            // Show answer details
+            answerDetailsDiv.innerHTML = '';
+            questions.forEach((q, index) => {
+                const userAnswer = answers[`q${index}`];
+                const detailDiv = document.createElement('p');
+                let answerStatusClass = '';
+                let userAnswerText = userAnswer !== null ? userAnswer : 'Tidak dijawab';
+
+                if (userAnswer === q.answer) {
+                    answerStatusClass = 'correct';
+                } else if (userAnswer !== null) {
+                    answerStatusClass = 'incorrect';
+                }
+
+                detailDiv.innerHTML = `
+                    <strong>${index + 1}. ${q.question}</strong><br>
+                    Jawaban Anda: <span class="${answerStatusClass}">
+                        ${userAnswerText}
+                    </span><br>
+                    Kunci Jawaban: <span class="correct">${q.answer}</span>
+                `;
+                answerDetailsDiv.appendChild(detailDiv);
+            });
+
+            quizForm.style.display = 'none'; // Hide the quiz form
+            resultsDiv.style.display = 'block'; // Show the results div
+        });
+
+        // Initialize quiz
+        generateQuestions();
+        startTimer();
+    </script>
+</body>
+</html>
